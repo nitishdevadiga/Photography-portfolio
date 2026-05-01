@@ -238,7 +238,7 @@ export const photos: Photo[] = [
   {
     id: '25',
     src: img('25-banipuram-collage.jpeg'),
-    title: 'Banipuram',
+    title: 'Ranipuram',
     caption: 'Three frames of a long walk.',
     moods: ['composed', 'wander'],
     date: '2024-07',
