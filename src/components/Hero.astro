@@ -2,19 +2,21 @@
 import { Image } from 'astro:assets';
 import { photos } from '../data/photos.ts';
 
-// Two photos separated by a torn-paper diagonal
-const topPhoto = photos.find((p) => p.id === '15')!;  // Daisies on fire (warm)
-const bottomPhoto = photos.find((p) => p.id === '08')!;  // Bokeh weather (cool)
+// Underneath layer (visible through the tear): the ant standing tall
+const underPhoto = photos.find((p) => p.id === '05')!;  // Antennae up
+
+// Top "paper" layer (gets torn): daisies on fire
+const paperPhoto = photos.find((p) => p.id === '15')!;  // Daisies on fire
 ---
 
 <section class="hero">
   <div class="hero-image">
-    <!-- Top half: daisies on fire -->
-    <div class="layer top">
+    <!-- BOTTOM LAYER: ant photo, visible only through the torn hole -->
+    <div class="under-layer">
       <Image
-        src={topPhoto.src}
-        alt={topPhoto.title}
-        widths={[800, 1200, 1800, 2400]}
+        src={underPhoto.src}
+        alt={underPhoto.title}
+        widths={[800, 1200, 1800]}
         sizes="100vw"
         loading="eager"
         format="webp"
@@ -22,84 +24,183 @@ const bottomPhoto = photos.find((p) => p.id === '08')!;  // Bokeh weather (cool)
       />
     </div>
 
-    <!-- Bottom half: bokeh weather -->
-    <div class="layer bottom">
-      <Image
-        src={bottomPhoto.src}
-        alt={bottomPhoto.title}
-        widths={[800, 1200, 1800, 2400]}
-        sizes="100vw"
-        loading="eager"
-        format="webp"
-        quality={88}
-      />
-    </div>
-
-    <!-- Torn paper edge SVG — sits at the diagonal seam -->
-    <svg class="tear" viewBox="0 0 1600 900" preserveAspectRatio="none" aria-hidden="true">
+    <!-- TOP LAYER: daisies photo with a hole torn out of the middle -->
+    <!-- The hole is created via SVG mask -->
+    <svg class="paper-svg" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
       <defs>
-        <!-- Subtle paper texture filter for the white tear edge -->
-        <filter id="paperGrain">
-          <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="3" />
-          <feColorMatrix values="0 0 0 0 1
-                                 0 0 0 0 1
-                                 0 0 0 0 1
-                                 0 0 0 0.4 0" />
-          <feComposite in2="SourceGraphic" operator="in" />
+        <!-- Mask: white = visible, black = transparent. The torn hole is black. -->
+        <mask id="tearMask">
+          <rect width="1600" height="900" fill="white" />
+          <!-- The torn-out hole. Organic curves, not zigzags. -->
+          <path d="
+            M 380,290
+            C 360,310 350,340 380,365
+            C 410,390 440,380 470,395
+            C 500,410 530,395 560,400
+            C 580,403 595,415 615,418
+            C 640,422 665,415 695,410
+            C 730,405 760,415 795,420
+            C 830,425 865,415 905,420
+            C 950,425 990,415 1030,425
+            C 1070,435 1100,455 1130,465
+            C 1170,478 1200,465 1230,475
+            C 1255,483 1270,505 1268,535
+            C 1265,565 1245,580 1215,585
+            C 1180,592 1145,580 1110,585
+            C 1075,590 1045,605 1010,608
+            C 970,612 935,600 895,605
+            C 855,610 820,625 780,625
+            C 740,625 705,610 670,610
+            C 635,610 600,625 565,620
+            C 530,615 500,595 470,595
+            C 440,595 410,610 380,605
+            C 350,600 325,580 320,550
+            C 315,520 320,485 330,455
+            C 340,425 350,395 360,365
+            C 365,350 370,330 380,290
+            Z
+          " fill="black" />
+        </mask>
+
+        <!-- Paper fiber filter — creates the wispy fiber texture along the rip edge -->
+        <filter id="paperFiber">
+          <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="5" />
+          <feDisplacementMap in="SourceGraphic" scale="4" />
         </filter>
-        <!-- Drop shadow for the rip -->
-        <filter id="ripShadow" x="-5%" y="-200%" width="110%" height="500%">
-          <feGaussianBlur in="SourceAlpha" stdDeviation="6" />
-          <feOffset dx="0" dy="3" result="offsetblur" />
-          <feFlood flood-color="#000" flood-opacity="0.55" />
-          <feComposite in2="offsetblur" operator="in" />
-          <feMerge>
-            <feMergeNode />
-            <feMergeNode in="SourceGraphic" />
-          </feMerge>
+
+        <!-- Drop shadow inside the tear for depth (paper sitting on top of photo) -->
+        <filter id="innerShadow" x="-20%" y="-20%" width="140%" height="140%">
+          <feGaussianBlur in="SourceAlpha" stdDeviation="8" />
+          <feOffset dx="2" dy="6" />
+          <feComposite in2="SourceAlpha" operator="arithmetic" k2="-1" k3="1" />
+          <feColorMatrix values="0 0 0 0 0
+                                 0 0 0 0 0
+                                 0 0 0 0 0
+                                 0 0 0 0.7 0" />
+          <feComposite in="SourceGraphic" operator="over" />
         </filter>
+
+        <!-- The daisies image as an SVG pattern, masked by the tear -->
+        <pattern id="paperImage" patternUnits="userSpaceOnUse" width="1600" height="900">
+          <image href={paperPhoto.src.src} x="0" y="0" width="1600" height="900" preserveAspectRatio="xMidYMid slice" />
+        </pattern>
       </defs>
 
-      <!-- The torn edge path. Diagonal across the screen with jagged irregularity.
-           This is essentially the bottom-right boundary of the top photo. -->
-      <path class="tear-edge" filter="url(#ripShadow)"
-        d="M 0,420
-           L 60,440 L 130,418 L 195,452 L 270,425 L 350,460
-           L 410,438 L 490,475 L 555,448 L 635,490 L 700,460
-           L 780,505 L 845,478 L 925,520 L 1000,495 L 1075,535
-           L 1150,510 L 1225,548 L 1300,525 L 1375,562
-           L 1450,540 L 1525,575 L 1600,555
-           L 1600,900 L 0,900 Z"
-        fill="#0a0807" />
+      <!-- The daisies image with the hole punched through it -->
+      <rect width="1600" height="900" fill="url(#paperImage)" mask="url(#tearMask)" />
 
-      <!-- White paper-edge stroke along the tear -->
-      <path class="tear-highlight"
-        d="M 0,420
-           L 60,440 L 130,418 L 195,452 L 270,425 L 350,460
-           L 410,438 L 490,475 L 555,448 L 635,490 L 700,460
-           L 780,505 L 845,478 L 925,520 L 1000,495 L 1075,535
-           L 1150,510 L 1225,548 L 1300,525 L 1375,562
-           L 1450,540 L 1525,575 L 1600,555"
+      <!-- Bone-white torn edge — the "paper" inner lip showing along the rip -->
+      <path class="torn-edge"
+        d="
+          M 380,290
+          C 360,310 350,340 380,365
+          C 410,390 440,380 470,395
+          C 500,410 530,395 560,400
+          C 580,403 595,415 615,418
+          C 640,422 665,415 695,410
+          C 730,405 760,415 795,420
+          C 830,425 865,415 905,420
+          C 950,425 990,415 1030,425
+          C 1070,435 1100,455 1130,465
+          C 1170,478 1200,465 1230,475
+          C 1255,483 1270,505 1268,535
+          C 1265,565 1245,580 1215,585
+          C 1180,592 1145,580 1110,585
+          C 1075,590 1045,605 1010,608
+          C 970,612 935,600 895,605
+          C 855,610 820,625 780,625
+          C 740,625 705,610 670,610
+          C 635,610 600,625 565,620
+          C 530,615 500,595 470,595
+          C 440,595 410,610 380,605
+          C 350,600 325,580 320,550
+          C 315,520 320,485 330,455
+          C 340,425 350,395 360,365
+          C 365,350 370,330 380,290
+          Z
+        "
         fill="none"
         stroke="#ede5d8"
-        stroke-width="2.5"
+        stroke-width="3"
         stroke-linejoin="round"
-        opacity="0.85" />
+        opacity="0.85"
+      />
 
-      <!-- Tiny paper-fiber whisps along the edge for realism -->
-      <path class="tear-fibers"
-        d="M 0,420
-           L 60,440 L 130,418 L 195,452 L 270,425 L 350,460
-           L 410,438 L 490,475 L 555,448 L 635,490 L 700,460
-           L 780,505 L 845,478 L 925,520 L 1000,495 L 1075,535
-           L 1150,510 L 1225,548 L 1300,525 L 1375,562
-           L 1450,540 L 1525,575 L 1600,555"
+      <!-- Wispy paper fibers along the edge -->
+      <path class="paper-fibers"
+        d="
+          M 380,290
+          C 360,310 350,340 380,365
+          C 410,390 440,380 470,395
+          C 500,410 530,395 560,400
+          C 580,403 595,415 615,418
+          C 640,422 665,415 695,410
+          C 730,405 760,415 795,420
+          C 830,425 865,415 905,420
+          C 950,425 990,415 1030,425
+          C 1070,435 1100,455 1130,465
+          C 1170,478 1200,465 1230,475
+          C 1255,483 1270,505 1268,535
+          C 1265,565 1245,580 1215,585
+          C 1180,592 1145,580 1110,585
+          C 1075,590 1045,605 1010,608
+          C 970,612 935,600 895,605
+          C 855,610 820,625 780,625
+          C 740,625 705,610 670,610
+          C 635,610 600,625 565,620
+          C 530,615 500,595 470,595
+          C 440,595 410,610 380,605
+          C 350,600 325,580 320,550
+          C 315,520 320,485 330,455
+          C 340,425 350,395 360,365
+          C 365,350 370,330 380,290
+          Z
+        "
         fill="none"
         stroke="#ede5d8"
+        stroke-width="9"
+        stroke-linejoin="round"
+        opacity="0.25"
+        filter="url(#paperFiber)"
+      />
+
+      <!-- Inner shadow inside the tear (the ant photo recessed below the daisies "paper") -->
+      <path
+        d="
+          M 380,290
+          C 360,310 350,340 380,365
+          C 410,390 440,380 470,395
+          C 500,410 530,395 560,400
+          C 580,403 595,415 615,418
+          C 640,422 665,415 695,410
+          C 730,405 760,415 795,420
+          C 830,425 865,415 905,420
+          C 950,425 990,415 1030,425
+          C 1070,435 1100,455 1130,465
+          C 1170,478 1200,465 1230,475
+          C 1255,483 1270,505 1268,535
+          C 1265,565 1245,580 1215,585
+          C 1180,592 1145,580 1110,585
+          C 1075,590 1045,605 1010,608
+          C 970,612 935,600 895,605
+          C 855,610 820,625 780,625
+          C 740,625 705,610 670,610
+          C 635,610 600,625 565,620
+          C 530,615 500,595 470,595
+          C 440,595 410,610 380,605
+          C 350,600 325,580 320,550
+          C 315,520 320,485 330,455
+          C 340,425 350,395 360,365
+          C 365,350 370,330 380,290
+          Z
+        "
+        fill="none"
+        stroke="rgba(0,0,0,0.6)"
         stroke-width="6"
         stroke-linejoin="round"
-        opacity="0.15"
-        filter="url(#paperGrain)" />
+        style="filter: blur(3px);"
+        transform="translate(2, 4)"
+      />
     </svg>
 
     <div class="vignette"></div>
@@ -142,10 +243,10 @@ const bottomPhoto = photos.find((p) => p.id === '08')!;  // Bokeh weather (cool)
     </div>
   </div>
 
-  <!-- attribution badge -->
+  <!-- attribution badge — vertical on the right edge -->
   <div class="hero-credit">
-    <span class="num">Diptych · No. {topPhoto.id} / {bottomPhoto.id}</span>
-    <span class="title"><em>Two halves of the same hour.</em></span>
+    <span class="num">Through · No. {paperPhoto.id} / {underPhoto.id}</span>
+    <span class="title"><em>What grows through the burning.</em></span>
   </div>
 </section>
 
@@ -167,94 +268,75 @@ const bottomPhoto = photos.find((p) => p.id === '08')!;  // Bokeh weather (cool)
     z-index: 1;
   }
 
-  .layer {
+  // The ant photo, sitting underneath. Visible only through the tear.
+  .under-layer {
     position: absolute;
     inset: 0;
-    overflow: hidden;
+    z-index: 1;
 
     :global(img) {
       width: 100%;
       height: 100%;
       object-fit: cover;
       object-position: center;
+      // The under-photo is given a subtle warm tint and slight zoom-in
+      // so it feels like the ant is "emerging" through the burning paper
+      filter: contrast(1.1) saturate(1.05);
+      animation: emerge 14s ease-in-out infinite alternate;
     }
   }
 
-  // Top half — daisies fire. Clipped above the tear line.
-  // The clip-path matches the SVG tear path roughly (slight irregularity).
-  .top {
-    z-index: 2;
-    clip-path: polygon(
-      0 0, 100% 0, 100% 0,
-      100% 61%, 96% 64%, 92% 60%, 87% 65%, 83% 61%, 79% 65%,
-      75% 62%, 71% 67%, 67% 63%, 63% 68%, 59% 64%, 55% 69%,
-      51% 65%, 47% 70%, 43% 66%, 39% 71%, 35% 67%, 31% 71%,
-      27% 67%, 23% 70%, 19% 66%, 15% 70%, 11% 67%, 7% 70%, 3% 67%, 0 70%
-    );
-
-    :global(img) {
-      filter: saturate(1.1) contrast(1.05);
-      animation: zoomTop 24s ease-in-out infinite alternate;
-    }
-  }
-
-  // Bottom half — bokeh feather
-  .bottom {
-    z-index: 1;
-
-    :global(img) {
-      filter: saturate(0.85) brightness(0.85);
-      animation: zoomBottom 28s ease-in-out infinite alternate;
-    }
-  }
-
-  // Drift animations — opposite directions create depth
-  @keyframes zoomTop {
+  @keyframes emerge {
     from {
-      transform: scale(1.02) translateY(-0.5%);
+      transform: scale(1.04);
     }
     to {
-      transform: scale(1.08) translateY(1%);
-    }
-  }
-  @keyframes zoomBottom {
-    from {
-      transform: scale(1.06) translateY(0.5%);
-    }
-    to {
-      transform: scale(1.02) translateY(-1%);
+      transform: scale(1.1);
     }
   }
 
-  // The torn-paper SVG sits between the two layers visually
-  .tear {
+  // The torn paper SVG (daisies image with hole) sits above
+  .paper-svg {
     position: absolute;
     inset: 0;
     width: 100%;
     height: 100%;
-    z-index: 3;
+    z-index: 2;
     pointer-events: none;
+
+    // Subtle drift on the paper layer
+    animation: paperDrift 22s ease-in-out infinite alternate;
   }
 
-  .tear-edge {
-    // Slow, almost imperceptible flutter
-    animation: flutter 8s ease-in-out infinite alternate;
+  @keyframes paperDrift {
+    from {
+      transform: scale(1.02) translateX(-0.3%);
+    }
+    to {
+      transform: scale(1.04) translateX(0.3%);
+    }
+  }
+
+  // The bone-white torn edge breathes very slightly
+  .torn-edge,
+  .paper-fibers {
+    animation: edgeFlutter 6s ease-in-out infinite alternate;
     transform-origin: center;
   }
 
-  @keyframes flutter {
+  @keyframes edgeFlutter {
     from {
-      transform: translateY(-2px);
+      transform: translateY(-1px);
     }
     to {
-      transform: translateY(2px);
+      transform: translateY(1.5px);
     }
   }
 
   .vignette {
     position: absolute;
     inset: 0;
-    z-index: 4;
+    z-index: 3;
     pointer-events: none;
     background:
       linear-gradient(to bottom, rgba(10, 8, 7, 0.85) 0%, rgba(10, 8, 7, 0.3) 22%, transparent 45%),
@@ -265,7 +347,7 @@ const bottomPhoto = photos.find((p) => p.id === '08')!;  // Bokeh weather (cool)
   .hero-content {
     position: absolute;
     inset: 0;
-    z-index: 5;
+    z-index: 4;
     display: flex;
     align-items: flex-end;
     padding-bottom: $s-9;
@@ -419,7 +501,7 @@ const bottomPhoto = photos.find((p) => p.id === '08')!;  // Bokeh weather (cool)
     position: absolute;
     top: 50%;
     right: $s-6;
-    z-index: 5;
+    z-index: 4;
     transform: translateY(-50%) rotate(90deg);
     transform-origin: right center;
     display: flex;
