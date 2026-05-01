@@ -1,0 +1,61 @@
+// ============ TOKENS ============
+// Design system. All colors, type, and motion live here.
+
+@use 'sass:color';
+
+// --- color ---
+$ink: #0a0807; // near-black canvas
+$ink-2: #15110e; // slightly raised surfaces
+$ink-3: #1f1a15; // borders, dividers
+$bone: #ede5d8; // primary text, warm bone-white
+$bone-soft: #b3a896; // secondary text
+$bone-mute: #6b6155; // tertiary, captions
+
+$rust: #b85432; // single accent, used sparingly
+$rust-soft: #8a3e26;
+$rust-glow: rgba(184, 84, 50, 0.18);
+
+// --- typography ---
+$serif: 'Fraunces', 'Iowan Old Style', 'Times New Roman', serif;
+$mono: 'JetBrains Mono', 'SF Mono', 'Menlo', monospace;
+
+// --- spacing scale (8px base) ---
+$s-1: 0.25rem;
+$s-2: 0.5rem;
+$s-3: 0.75rem;
+$s-4: 1rem;
+$s-5: 1.5rem;
+$s-6: 2rem;
+$s-7: 3rem;
+$s-8: 4rem;
+$s-9: 6rem;
+$s-10: 8rem;
+
+// --- motion ---
+// Fast, immediate. No bounce, no overshoot.
+$ease: cubic-bezier(0.32, 0.72, 0.24, 1); // smooth, decisive
+$ease-out: cubic-bezier(0.16, 1, 0.3, 1); // for reveals
+$dur-fast: 180ms;
+$dur-base: 320ms;
+$dur-slow: 600ms;
+
+// --- layout ---
+$max-w: 1600px;
+$gutter: 2rem;
+$gutter-mobile: 1.25rem;
+
+// --- breakpoints ---
+$bp-mobile: 640px;
+$bp-tablet: 900px;
+$bp-desktop: 1200px;
+
+@mixin mobile {
+  @media (max-width: #{$bp-tablet - 1px}) {
+    @content;
+  }
+}
+@mixin tablet-up {
+  @media (min-width: #{$bp-tablet}) {
+    @content;
+  }
+}

@@ -1,0 +1,168 @@
+@use 'tokens' as *;
+
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;1,9..144,300;1,9..144,400&family=JetBrains+Mono:wght@400;500&display=swap');
+
+// ============ RESET ============
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+img, picture, video { max-width: 100%; display: block; }
+button { font: inherit; color: inherit; background: none; border: none; cursor: pointer; }
+a { color: inherit; text-decoration: none; }
+ul, ol { list-style: none; }
+
+// ============ BASE ============
+body {
+  background: $ink;
+  color: $bone;
+  font-family: $serif;
+  font-size: 17px;
+  line-height: 1.55;
+  font-weight: 300;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: 'liga', 'calt', 'kern';
+  overflow-x: hidden;
+}
+
+// subtle film grain — much lower than before, just for atmosphere
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  pointer-events: none;
+  z-index: 100;
+  opacity: 0.035;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  mix-blend-mode: screen;
+}
+
+::selection {
+  background: $rust;
+  color: $bone;
+}
+
+// ============ TYPE UTILITIES ============
+.mono {
+  font-family: $mono;
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  font-weight: 400;
+}
+
+.eyebrow {
+  @extend .mono;
+  color: $bone-mute;
+  display: inline-flex;
+  align-items: center;
+  gap: $s-3;
+
+  &::before {
+    content: '';
+    width: 24px;
+    height: 1px;
+    background: currentColor;
+  }
+}
+
+.italic { font-style: italic; }
+.accent { color: $rust; }
+
+// ============ LAYOUT ============
+.container {
+  max-width: $max-w;
+  margin: 0 auto;
+  padding-left: $gutter;
+  padding-right: $gutter;
+
+  @include mobile {
+    padding-left: $gutter-mobile;
+    padding-right: $gutter-mobile;
+  }
+}
+
+// ============ MOTION ============
+// Reveal-on-scroll. Cinematic clip-path wipe from bottom.
+.reveal {
+  opacity: 0;
+  transform: translateY(16px);
+  transition:
+    opacity $dur-slow $ease-out,
+    transform $dur-slow $ease-out;
+
+  &.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// Photos use a clip-path reveal — feels cinematic, like an aperture opening
+.reveal-clip {
+  clip-path: inset(0 0 100% 0);
+  transition: clip-path 1s $ease-out;
+
+  &.is-visible {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+// ============ CUSTOM CURSOR ============
+// Two-layer cursor: 1:1 dot + lerping ring.
+// CSS hides default cursor only when the body has .has-cursor (added by JS)
+.has-cursor {
+  cursor: none;
+
+  a, button, [data-lightbox], [data-tilt], input, textarea, select {
+    cursor: none;
+  }
+}
+
+.cursor-dot,
+.cursor-ring {
+  position: fixed;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  z-index: 9999;
+  border-radius: 50%;
+  transition: opacity $dur-fast $ease;
+}
+
+.cursor-dot {
+  width: 4px;
+  height: 4px;
+  background: $rust;
+  // No will-change — set by transform every frame
+}
+
+.cursor-ring {
+  width: 32px;
+  height: 32px;
+  border: 1px solid rgba($bone, 0.4);
+  transition: width $dur-base $ease, height $dur-base $ease,
+    border-color $dur-base $ease, opacity $dur-fast $ease, background $dur-base $ease;
+
+  &.is-hover {
+    width: 56px;
+    height: 56px;
+    border-color: $rust;
+    background: rgba($rust, 0.05);
+  }
+
+  &.is-click {
+    width: 24px;
+    height: 24px;
+    background: rgba($rust, 0.15);
+  }
+}
+
+// honor user's reduced-motion preference
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .cursor-dot, .cursor-ring {
+    display: none;
+  }
+}

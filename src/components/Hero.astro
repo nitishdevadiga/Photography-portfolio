@@ -1,0 +1,328 @@
+---
+import { Image } from 'astro:assets';
+import { photos } from '../data/photos.ts';
+
+// Three photos for the layered hero stack — back to front
+const stack = [
+  photos.find((p) => p.id === '24')!, // back: dark droplet
+  photos.find((p) => p.id === '09')!, // middle: rose
+  photos.find((p) => p.id === '15')!, // front: sunset daisies
+];
+---
+
+<section class="hero">
+  <div class="container hero-grid">
+    <div class="hero-text">
+      <p class="eyebrow">Photographs · 2024 — 2025</p>
+      <h1>
+        <span class="line">Light, held</span>
+        <span class="line"><em>briefly.</em></span>
+      </h1>
+      <p class="lede">
+        A field journal by <strong>Nitish Devadiga</strong> — quiet macro,
+        burning landscapes, dark rooms, and a few things that asked to be
+        photographed before disappearing.
+      </p>
+      <div class="meta">
+        <div>
+          <span class="num">25</span>
+          <span class="lbl">photographs</span>
+        </div>
+        <div>
+          <span class="num">07</span>
+          <span class="lbl">moods</span>
+        </div>
+        <div>
+          <span class="num">02</span>
+          <span class="lbl">years</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="stack" id="hero-stack">
+      {
+        stack.map((p, i) => (
+          <figure
+            class={`card card-${i}`}
+            data-photo-id={p.id}
+            data-lightbox
+            data-tilt
+          >
+            <Image
+              src={p.src}
+              alt={p.title}
+              widths={[480, 800, 1200]}
+              sizes="(max-width: 900px) 100vw, 50vw"
+              loading="eager"
+              format="webp"
+              quality={85}
+            />
+            <figcaption>
+              <span class="num">No. {p.id}</span>
+              <span class="title">{p.title}</span>
+            </figcaption>
+          </figure>
+        ))
+      }
+    </div>
+  </div>
+</section>
+
+<style lang="scss">
+  @use '../styles/tokens' as *;
+
+  .hero {
+    padding-top: calc(#{$s-10} + #{$s-6});
+    padding-bottom: $s-9;
+    position: relative;
+
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: $gutter;
+      right: $gutter;
+      height: 1px;
+      background: linear-gradient(to right, transparent, $ink-3 20%, $ink-3 80%, transparent);
+    }
+  }
+
+  .hero-grid {
+    display: grid;
+    grid-template-columns: 1.05fr 1fr;
+    gap: $s-9;
+    align-items: center;
+    min-height: 75vh;
+
+    @include mobile {
+      grid-template-columns: 1fr;
+      gap: $s-7;
+      min-height: auto;
+    }
+  }
+
+  .hero-text {
+    .eyebrow {
+      margin-bottom: $s-6;
+    }
+  }
+
+  h1 {
+    font-family: $serif;
+    font-size: clamp(56px, 9vw, 132px);
+    font-weight: 300;
+    line-height: 0.92;
+    letter-spacing: -0.035em;
+    margin-bottom: $s-6;
+
+    .line {
+      display: block;
+      opacity: 0;
+      transform: translateY(20px);
+      animation: rise $dur-slow $ease-out forwards;
+
+      &:nth-child(1) {
+        animation-delay: 0.1s;
+      }
+      &:nth-child(2) {
+        animation-delay: 0.25s;
+      }
+    }
+
+    em {
+      font-style: italic;
+      font-weight: 400;
+      color: $rust;
+    }
+  }
+
+  @keyframes rise {
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .lede {
+    font-size: 18px;
+    line-height: 1.6;
+    color: $bone-soft;
+    max-width: 480px;
+    margin-bottom: $s-7;
+
+    strong {
+      font-weight: 400;
+      color: $bone;
+    }
+  }
+
+  .meta {
+    display: flex;
+    gap: $s-7;
+
+    @include mobile {
+      gap: $s-5;
+    }
+
+    div {
+      display: flex;
+      flex-direction: column;
+      gap: $s-1;
+    }
+
+    .num {
+      font-family: $serif;
+      font-size: 28px;
+      font-weight: 300;
+      color: $bone;
+      letter-spacing: -0.02em;
+    }
+
+    .lbl {
+      font-family: $mono;
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: $bone-mute;
+    }
+  }
+
+  // ============ STACKED PHOTO COMPOSITION ============
+  .stack {
+    position: relative;
+    aspect-ratio: 1 / 1.05;
+    width: 100%;
+    perspective: 1500px;
+
+    @include mobile {
+      aspect-ratio: 4 / 5;
+      margin-top: $s-4;
+    }
+  }
+
+  .card {
+    position: absolute;
+    overflow: hidden;
+    cursor: pointer;
+    box-shadow:
+      0 1px 3px rgba(0, 0, 0, 0.4),
+      0 20px 50px rgba(0, 0, 0, 0.5);
+    transition: transform $dur-base $ease, box-shadow $dur-base $ease;
+    will-change: transform;
+    background: $ink-2;
+
+    :global(img) {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform $dur-slow $ease-out;
+    }
+
+    figcaption {
+      position: absolute;
+      bottom: $s-3;
+      left: $s-3;
+      right: $s-3;
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      color: $bone;
+      opacity: 0;
+      transform: translateY(8px);
+      transition: opacity $dur-base $ease, transform $dur-base $ease;
+      z-index: 2;
+      text-shadow: 0 2px 12px rgba(0, 0, 0, 0.7);
+
+      .num {
+        font-family: $mono;
+        font-size: 9px;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: $bone-soft;
+      }
+      .title {
+        font-family: $serif;
+        font-style: italic;
+        font-size: 16px;
+      }
+    }
+
+    &::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, rgba(10, 8, 7, 0.7) 0%, transparent 40%);
+      opacity: 0;
+      transition: opacity $dur-base $ease;
+      pointer-events: none;
+    }
+
+    &:hover {
+      z-index: 10;
+      box-shadow:
+        0 1px 3px rgba(0, 0, 0, 0.5),
+        0 30px 80px rgba(184, 84, 50, 0.15);
+
+      figcaption {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      &::after {
+        opacity: 1;
+      }
+      :global(img) {
+        transform: scale(1.06);
+      }
+    }
+  }
+
+  // Stack positions — each card is distinct and overlapping
+  // Defaults are baseline (no tilt) — JS adds the rotation as a CSS var so tilt-on-hover can override
+  .card-0 {
+    width: 65%;
+    aspect-ratio: 4 / 5;
+    top: 0;
+    right: 0;
+    transform: rotate(3.5deg);
+    z-index: 1;
+    --base-rot: 3.5deg;
+  }
+  .card-1 {
+    width: 60%;
+    aspect-ratio: 3 / 4;
+    top: 22%;
+    left: 4%;
+    transform: rotate(-4deg);
+    z-index: 2;
+    --base-rot: -4deg;
+  }
+  .card-2 {
+    width: 55%;
+    aspect-ratio: 4 / 5;
+    bottom: 0;
+    right: 8%;
+    transform: rotate(2deg);
+    z-index: 3;
+    --base-rot: 2deg;
+  }
+
+  // On hover, straighten and lift
+  .card-0:hover,
+  .card-1:hover,
+  .card-2:hover {
+    transform: rotate(0deg) translateY(-12px) scale(1.03);
+  }
+
+  @include mobile {
+    .card-0 {
+      width: 70%;
+    }
+    .card-1 {
+      width: 62%;
+      top: 20%;
+    }
+    .card-2 {
+      width: 56%;
+    }
+  }
+</style>

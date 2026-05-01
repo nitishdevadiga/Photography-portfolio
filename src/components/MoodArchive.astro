@@ -1,0 +1,261 @@
+---
+import { Image } from 'astro:assets';
+import { photos, moods } from '../data/photos.ts';
+---
+
+<section id="archive" class="archive">
+  <div class="container">
+    <header class="section-head">
+      <p class="eyebrow">Archive</p>
+      <h2>By <em>mood.</em></h2>
+    </header>
+
+    <div class="moods" role="tablist">
+      <button
+        class="mood-btn is-active"
+        data-mood="all"
+        role="tab"
+        aria-selected="true"
+      >
+        <span class="label">All</span>
+        <span class="count">{photos.length}</span>
+      </button>
+      {
+        moods.map((m) => {
+          const count = photos.filter((p) => p.moods.includes(m.id)).length;
+          return (
+            <button
+              class="mood-btn"
+              data-mood={m.id}
+              role="tab"
+              aria-selected="false"
+            >
+              <span class="label">{m.label}</span>
+              <span class="count">{count}</span>
+            </button>
+          );
+        })
+      }
+    </div>
+
+    <p class="mood-desc mono" id="mood-desc"></p>
+
+    <div class="grid" id="archive-grid">
+      {
+        photos.map((p) => (
+          <button
+            class="arc"
+            data-photo-id={p.id}
+            data-moods={p.moods.join(',')}
+            data-lightbox
+            aria-label={`View ${p.title}`}
+          >
+            <Image
+              src={p.src}
+              alt={p.title}
+              widths={[300, 500, 800]}
+              sizes="(max-width: 600px) 50vw, (max-width: 900px) 33vw, 25vw"
+              loading="lazy"
+              format="webp"
+              quality={78}
+            />
+            <div class="info">
+              <span class="num">{p.id}</span>
+              <span class="title">{p.title}</span>
+            </div>
+          </button>
+        ))
+      }
+    </div>
+  </div>
+</section>
+
+<style lang="scss">
+  @use '../styles/tokens' as *;
+
+  .archive {
+    padding-top: $s-10;
+  }
+
+  .section-head {
+    margin-bottom: $s-6;
+    padding-bottom: $s-5;
+    border-bottom: 1px solid $ink-3;
+
+    .eyebrow {
+      margin-bottom: $s-3;
+    }
+
+    h2 {
+      font-family: $serif;
+      font-size: clamp(36px, 5vw, 64px);
+      font-weight: 300;
+      line-height: 1;
+      letter-spacing: -0.025em;
+      em {
+        font-style: italic;
+        color: $rust;
+      }
+    }
+  }
+
+  .moods {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $s-2;
+    margin-bottom: $s-4;
+  }
+
+  .mood-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: $s-3;
+    padding: $s-3 $s-4;
+    background: transparent;
+    border: 1px solid $ink-3;
+    border-radius: 999px;
+    color: $bone-soft;
+    transition: all $dur-fast $ease;
+
+    .label {
+      font-family: $serif;
+      font-size: 14px;
+      font-style: italic;
+      font-weight: 300;
+    }
+    .count {
+      font-family: $mono;
+      font-size: 10px;
+      letter-spacing: 0.15em;
+      color: $bone-mute;
+    }
+
+    &:hover {
+      border-color: $bone-mute;
+      color: $bone;
+    }
+
+    &.is-active {
+      background: $bone;
+      color: $ink;
+      border-color: $bone;
+
+      .count {
+        color: $bone-mute;
+      }
+    }
+  }
+
+  .mood-desc {
+    color: $bone-mute;
+    margin-bottom: $s-6;
+    min-height: 1.5em;
+    font-style: normal;
+    font-family: $serif;
+    font-size: 14px;
+    font-style: italic;
+    letter-spacing: 0;
+    text-transform: none;
+    opacity: 0;
+    transition: opacity $dur-base $ease;
+
+    &.is-show {
+      opacity: 1;
+    }
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: $s-3;
+
+    @media (max-width: 900px) {
+      grid-template-columns: repeat(3, 1fr);
+    }
+    @media (max-width: 600px) {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  .arc {
+    position: relative;
+    aspect-ratio: 4 / 5;
+    overflow: hidden;
+    background: $ink-2;
+    text-align: left;
+
+    :global(img) {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform $dur-slow $ease-out, filter $dur-base $ease;
+      filter: brightness(0.85) saturate(0.95);
+    }
+
+    &:hover :global(img),
+    &:focus-visible :global(img) {
+      transform: scale(1.05);
+      filter: brightness(1) saturate(1);
+    }
+
+    &::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        to top,
+        rgba(10, 8, 7, 0.8) 0%,
+        transparent 50%
+      );
+      opacity: 0;
+      transition: opacity $dur-base $ease;
+    }
+    &:hover::after,
+    &:focus-visible::after {
+      opacity: 1;
+    }
+
+    &:focus-visible {
+      outline: 1px solid $rust;
+      outline-offset: 2px;
+    }
+
+    &.is-hidden {
+      display: none;
+    }
+  }
+
+  .info {
+    position: absolute;
+    bottom: $s-3;
+    left: $s-3;
+    right: $s-3;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    color: $bone;
+    opacity: 0;
+    transform: translateY(4px);
+    transition: opacity $dur-base $ease, transform $dur-base $ease;
+    z-index: 2;
+
+    .num {
+      font-family: $mono;
+      font-size: 9px;
+      letter-spacing: 0.2em;
+      color: $bone-soft;
+    }
+    .title {
+      font-family: $serif;
+      font-style: italic;
+      font-size: 13px;
+      color: $bone;
+    }
+  }
+
+  .arc:hover .info,
+  .arc:focus-visible .info {
+    opacity: 1;
+    transform: translateY(0);
+  }
+</style>

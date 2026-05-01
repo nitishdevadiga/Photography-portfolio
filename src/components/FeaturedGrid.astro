@@ -1,0 +1,252 @@
+---
+import { Image } from 'astro:assets';
+import { featured } from '../data/photos.ts';
+
+// Take the first 6 featured for the grid
+const items = featured.slice(0, 6);
+---
+
+<section id="featured" class="featured">
+  <div class="container">
+    <header class="section-head">
+      <p class="eyebrow">Featured</p>
+      <h2>Selected <em>frames.</em></h2>
+      <p class="hint mono">Click any photo to enlarge</p>
+    </header>
+
+    <div class="grid">
+      {
+        items.map((p, i) => (
+          <button
+            class={`feat feat-${i}`}
+            data-photo-id={p.id}
+            data-lightbox
+            data-tilt
+            aria-label={`View ${p.title}`}
+          >
+            <Image
+              src={p.src}
+              alt={p.title}
+              widths={[400, 800, 1200]}
+              sizes="(max-width: 900px) 100vw, 50vw"
+              loading={i < 2 ? 'eager' : 'lazy'}
+              format="webp"
+              quality={82}
+            />
+            <div class="caption">
+              <span class="num">No. {p.id}</span>
+              <span class="title">{p.title}</span>
+              <span class="moods">
+                {p.moods.map((m) => (
+                  <span>{m}</span>
+                ))}
+              </span>
+            </div>
+          </button>
+        ))
+      }
+    </div>
+  </div>
+</section>
+
+<style lang="scss">
+  @use '../styles/tokens' as *;
+
+  .featured {
+    padding-top: $s-10;
+  }
+
+  .section-head {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: end;
+    gap: $s-6;
+    margin-bottom: $s-7;
+    padding-bottom: $s-5;
+    border-bottom: 1px solid $ink-3;
+
+    h2 {
+      font-family: $serif;
+      font-size: clamp(36px, 5vw, 64px);
+      font-weight: 300;
+      line-height: 1;
+      letter-spacing: -0.025em;
+      em {
+        font-style: italic;
+        color: $rust;
+      }
+    }
+
+    .hint {
+      color: $bone-mute;
+      align-self: end;
+    }
+
+    @include mobile {
+      grid-template-columns: 1fr;
+      gap: $s-3;
+      .hint {
+        display: none;
+      }
+    }
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: $s-4;
+
+    @include mobile {
+      grid-template-columns: repeat(6, 1fr);
+      gap: $s-3;
+    }
+  }
+
+  // editorial, asymmetric layout
+  .feat {
+    position: relative;
+    overflow: hidden;
+    text-align: left;
+    cursor: pointer;
+    background: $ink-2;
+
+    :global(img) {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform $dur-slow $ease-out, filter $dur-base $ease;
+      filter: brightness(0.92);
+    }
+
+    &:hover :global(img),
+    &:focus-visible :global(img) {
+      transform: scale(1.04);
+      filter: brightness(1);
+    }
+
+    &::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        to top,
+        rgba(10, 8, 7, 0.85) 0%,
+        rgba(10, 8, 7, 0.3) 35%,
+        transparent 60%
+      );
+      opacity: 0;
+      transition: opacity $dur-base $ease;
+    }
+    &:hover::after,
+    &:focus-visible::after {
+      opacity: 1;
+    }
+
+    &:focus-visible {
+      outline: 1px solid $rust;
+      outline-offset: 4px;
+    }
+  }
+
+  .caption {
+    position: absolute;
+    bottom: $s-4;
+    left: $s-4;
+    right: $s-4;
+    display: grid;
+    gap: $s-1;
+    color: $bone;
+    opacity: 0;
+    transform: translateY(8px);
+    transition: opacity $dur-base $ease, transform $dur-base $ease;
+    z-index: 2;
+
+    .num {
+      font-family: $mono;
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: $bone-soft;
+    }
+    .title {
+      font-family: $serif;
+      font-style: italic;
+      font-size: 22px;
+      letter-spacing: -0.01em;
+    }
+    .moods {
+      display: flex;
+      gap: $s-2;
+      font-family: $mono;
+      font-size: 9px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: $bone-soft;
+      span {
+        &::after {
+          content: '·';
+          margin-left: $s-2;
+          color: $rust;
+        }
+        &:last-child::after {
+          content: '';
+        }
+      }
+    }
+  }
+
+  .feat:hover .caption,
+  .feat:focus-visible .caption {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  // grid placement (12-col base) — asymmetric
+  .feat-0 {
+    grid-column: span 7;
+    aspect-ratio: 4 / 5;
+  }
+  .feat-1 {
+    grid-column: span 5;
+    aspect-ratio: 3 / 4;
+    align-self: end;
+  }
+  .feat-2 {
+    grid-column: span 4;
+    aspect-ratio: 4 / 5;
+  }
+  .feat-3 {
+    grid-column: span 8;
+    aspect-ratio: 16 / 10;
+    align-self: center;
+  }
+  .feat-4 {
+    grid-column: span 6;
+    aspect-ratio: 4 / 5;
+  }
+  .feat-5 {
+    grid-column: span 6;
+    aspect-ratio: 4 / 5;
+  }
+
+  @include mobile {
+    .feat-0,
+    .feat-1,
+    .feat-2,
+    .feat-3,
+    .feat-4,
+    .feat-5 {
+      grid-column: span 6;
+      aspect-ratio: 4 / 5;
+      align-self: auto;
+    }
+    // captions always show on mobile (no hover)
+    .caption {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .feat::after {
+      opacity: 1;
+    }
+  }
+</style>
