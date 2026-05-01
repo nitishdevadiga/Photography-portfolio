@@ -2,18 +2,18 @@
 import { Image } from 'astro:assets';
 import { photos } from '../data/photos.ts';
 
-// Two photos blended together for a fire/bokeh hybrid
-const baseLayer = photos.find((p) => p.id === '08')!;  // Bokeh weather (feather + droplets)
-const fireLayer = photos.find((p) => p.id === '15')!;  // Daisies on fire (warm sunset)
+// Two photos separated by a torn-paper diagonal
+const topPhoto = photos.find((p) => p.id === '15')!;  // Daisies on fire (warm)
+const bottomPhoto = photos.find((p) => p.id === '08')!;  // Bokeh weather (cool)
 ---
 
 <section class="hero">
   <div class="hero-image">
-    <!-- Base layer: bokeh feather (cooler tones, softer) -->
-    <div class="layer base">
+    <!-- Top half: daisies on fire -->
+    <div class="layer top">
       <Image
-        src={baseLayer.src}
-        alt={baseLayer.title}
+        src={topPhoto.src}
+        alt={topPhoto.title}
         widths={[800, 1200, 1800, 2400]}
         sizes="100vw"
         loading="eager"
@@ -22,11 +22,11 @@ const fireLayer = photos.find((p) => p.id === '15')!;  // Daisies on fire (warm 
       />
     </div>
 
-    <!-- Fire layer: daisies sunset (blended on top) -->
-    <div class="layer fire">
+    <!-- Bottom half: bokeh weather -->
+    <div class="layer bottom">
       <Image
-        src={fireLayer.src}
-        alt={fireLayer.title}
+        src={bottomPhoto.src}
+        alt={bottomPhoto.title}
         widths={[800, 1200, 1800, 2400]}
         sizes="100vw"
         loading="eager"
@@ -34,6 +34,73 @@ const fireLayer = photos.find((p) => p.id === '15')!;  // Daisies on fire (warm 
         quality={88}
       />
     </div>
+
+    <!-- Torn paper edge SVG — sits at the diagonal seam -->
+    <svg class="tear" viewBox="0 0 1600 900" preserveAspectRatio="none" aria-hidden="true">
+      <defs>
+        <!-- Subtle paper texture filter for the white tear edge -->
+        <filter id="paperGrain">
+          <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="3" />
+          <feColorMatrix values="0 0 0 0 1
+                                 0 0 0 0 1
+                                 0 0 0 0 1
+                                 0 0 0 0.4 0" />
+          <feComposite in2="SourceGraphic" operator="in" />
+        </filter>
+        <!-- Drop shadow for the rip -->
+        <filter id="ripShadow" x="-5%" y="-200%" width="110%" height="500%">
+          <feGaussianBlur in="SourceAlpha" stdDeviation="6" />
+          <feOffset dx="0" dy="3" result="offsetblur" />
+          <feFlood flood-color="#000" flood-opacity="0.55" />
+          <feComposite in2="offsetblur" operator="in" />
+          <feMerge>
+            <feMergeNode />
+            <feMergeNode in="SourceGraphic" />
+          </feMerge>
+        </filter>
+      </defs>
+
+      <!-- The torn edge path. Diagonal across the screen with jagged irregularity.
+           This is essentially the bottom-right boundary of the top photo. -->
+      <path class="tear-edge" filter="url(#ripShadow)"
+        d="M 0,420
+           L 60,440 L 130,418 L 195,452 L 270,425 L 350,460
+           L 410,438 L 490,475 L 555,448 L 635,490 L 700,460
+           L 780,505 L 845,478 L 925,520 L 1000,495 L 1075,535
+           L 1150,510 L 1225,548 L 1300,525 L 1375,562
+           L 1450,540 L 1525,575 L 1600,555
+           L 1600,900 L 0,900 Z"
+        fill="#0a0807" />
+
+      <!-- White paper-edge stroke along the tear -->
+      <path class="tear-highlight"
+        d="M 0,420
+           L 60,440 L 130,418 L 195,452 L 270,425 L 350,460
+           L 410,438 L 490,475 L 555,448 L 635,490 L 700,460
+           L 780,505 L 845,478 L 925,520 L 1000,495 L 1075,535
+           L 1150,510 L 1225,548 L 1300,525 L 1375,562
+           L 1450,540 L 1525,575 L 1600,555"
+        fill="none"
+        stroke="#ede5d8"
+        stroke-width="2.5"
+        stroke-linejoin="round"
+        opacity="0.85" />
+
+      <!-- Tiny paper-fiber whisps along the edge for realism -->
+      <path class="tear-fibers"
+        d="M 0,420
+           L 60,440 L 130,418 L 195,452 L 270,425 L 350,460
+           L 410,438 L 490,475 L 555,448 L 635,490 L 700,460
+           L 780,505 L 845,478 L 925,520 L 1000,495 L 1075,535
+           L 1150,510 L 1225,548 L 1300,525 L 1375,562
+           L 1450,540 L 1525,575 L 1600,555"
+        fill="none"
+        stroke="#ede5d8"
+        stroke-width="6"
+        stroke-linejoin="round"
+        opacity="0.15"
+        filter="url(#paperGrain)" />
+    </svg>
 
     <div class="vignette"></div>
   </div>
@@ -77,8 +144,8 @@ const fireLayer = photos.find((p) => p.id === '15')!;  // Daisies on fire (warm 
 
   <!-- attribution badge -->
   <div class="hero-credit">
-    <span class="num">Composite · No. {baseLayer.id} + {fireLayer.id}</span>
-    <span class="title"><em>Where rain meets fire.</em></span>
+    <span class="num">Diptych · No. {topPhoto.id} / {bottomPhoto.id}</span>
+    <span class="title"><em>Two halves of the same hour.</em></span>
   </div>
 </section>
 
@@ -91,20 +158,19 @@ const fireLayer = photos.find((p) => p.id === '15')!;  // Daisies on fire (warm 
     height: 100vh;
     min-height: 640px;
     overflow: hidden;
-    background: $ink; // fallback while images load
+    background: $ink;
   }
 
   .hero-image {
     position: absolute;
     inset: 0;
     z-index: 1;
-    isolation: isolate; // contains blend-modes to this stack only
   }
 
-  // Both layers fill the hero
   .layer {
     position: absolute;
     inset: 0;
+    overflow: hidden;
 
     :global(img) {
       width: 100%;
@@ -114,65 +180,92 @@ const fireLayer = photos.find((p) => p.id === '15')!;  // Daisies on fire (warm 
     }
   }
 
-  // Base: feather + droplets. Slightly desaturated, slow drift left.
-  .base {
+  // Top half — daisies fire. Clipped above the tear line.
+  // The clip-path matches the SVG tear path roughly (slight irregularity).
+  .top {
+    z-index: 2;
+    clip-path: polygon(
+      0 0, 100% 0, 100% 0,
+      100% 61%, 96% 64%, 92% 60%, 87% 65%, 83% 61%, 79% 65%,
+      75% 62%, 71% 67%, 67% 63%, 63% 68%, 59% 64%, 55% 69%,
+      51% 65%, 47% 70%, 43% 66%, 39% 71%, 35% 67%, 31% 71%,
+      27% 67%, 23% 70%, 19% 66%, 15% 70%, 11% 67%, 7% 70%, 3% 67%, 0 70%
+    );
+
+    :global(img) {
+      filter: saturate(1.1) contrast(1.05);
+      animation: zoomTop 24s ease-in-out infinite alternate;
+    }
+  }
+
+  // Bottom half — bokeh feather
+  .bottom {
     z-index: 1;
 
     :global(img) {
-      filter: saturate(0.7) brightness(0.85);
-      animation: driftLeft 30s ease-in-out infinite alternate;
+      filter: saturate(0.85) brightness(0.85);
+      animation: zoomBottom 28s ease-in-out infinite alternate;
     }
   }
 
-  // Fire: daisies sunset. Blended via screen mode so highlights bleed through.
-  // 'screen' makes light pixels show through, 'soft-light' would be more subtle.
-  .fire {
-    z-index: 2;
-    mix-blend-mode: screen;
-    opacity: 0.85;
-
-    :global(img) {
-      filter: saturate(1.2) contrast(1.1) brightness(1.0);
-      animation: driftRight 26s ease-in-out infinite alternate;
-    }
-  }
-
-  // Subtle drift animations — opposite directions create depth
-  @keyframes driftLeft {
+  // Drift animations — opposite directions create depth
+  @keyframes zoomTop {
     from {
-      transform: scale(1.04) translateX(-1%);
+      transform: scale(1.02) translateY(-0.5%);
     }
     to {
-      transform: scale(1.08) translateX(1.5%);
+      transform: scale(1.08) translateY(1%);
     }
   }
-  @keyframes driftRight {
+  @keyframes zoomBottom {
     from {
-      transform: scale(1.06) translateX(1%);
+      transform: scale(1.06) translateY(0.5%);
     }
     to {
-      transform: scale(1.1) translateX(-1.5%);
+      transform: scale(1.02) translateY(-1%);
+    }
+  }
+
+  // The torn-paper SVG sits between the two layers visually
+  .tear {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 3;
+    pointer-events: none;
+  }
+
+  .tear-edge {
+    // Slow, almost imperceptible flutter
+    animation: flutter 8s ease-in-out infinite alternate;
+    transform-origin: center;
+  }
+
+  @keyframes flutter {
+    from {
+      transform: translateY(-2px);
+    }
+    to {
+      transform: translateY(2px);
     }
   }
 
   .vignette {
     position: absolute;
     inset: 0;
-    z-index: 3;
+    z-index: 4;
     pointer-events: none;
     background:
-      // dark fade at top to make the nav readable
-      linear-gradient(to bottom, rgba(10, 8, 7, 0.85) 0%, rgba(10, 8, 7, 0.3) 25%, transparent 50%),
-      // dark fade at bottom for text legibility + section transition
-      linear-gradient(to top, rgba(10, 8, 7, 0.95) 0%, rgba(10, 8, 7, 0.7) 25%, transparent 60%),
-      // very subtle vignette on the sides
+      linear-gradient(to bottom, rgba(10, 8, 7, 0.85) 0%, rgba(10, 8, 7, 0.3) 22%, transparent 45%),
+      linear-gradient(to top, rgba(10, 8, 7, 0.95) 0%, rgba(10, 8, 7, 0.7) 22%, transparent 55%),
       radial-gradient(ellipse at center, transparent 35%, rgba(10, 8, 7, 0.55) 100%);
   }
 
   .hero-content {
     position: absolute;
     inset: 0;
-    z-index: 4;
+    z-index: 5;
     display: flex;
     align-items: flex-end;
     padding-bottom: $s-9;
@@ -326,7 +419,7 @@ const fireLayer = photos.find((p) => p.id === '15')!;  // Daisies on fire (warm 
     position: absolute;
     top: 50%;
     right: $s-6;
-    z-index: 4;
+    z-index: 5;
     transform: translateY(-50%) rotate(90deg);
     transform-origin: right center;
     display: flex;
