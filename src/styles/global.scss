@@ -81,7 +81,7 @@ body::before {
 }
 
 // ============ MOTION ============
-// Reveal-on-scroll. Cinematic clip-path wipe from bottom.
+// Reveal-on-scroll. Simple fade + slight rise. Reliable.
 .reveal {
   opacity: 0;
   transform: translateY(16px);
@@ -92,16 +92,6 @@ body::before {
   &.is-visible {
     opacity: 1;
     transform: translateY(0);
-  }
-}
-
-// Photos use a clip-path reveal — feels cinematic, like an aperture opening
-.reveal-clip {
-  clip-path: inset(0 0 100% 0);
-  transition: clip-path 1s $ease-out;
-
-  &.is-visible {
-    clip-path: inset(0 0 0 0);
   }
 }
 
