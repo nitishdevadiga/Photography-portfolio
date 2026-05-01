@@ -142,16 +142,6 @@ export const photos: Photo[] = [
     aspect: 'portrait',
   },
   {
-    id: '13',
-    src: img('13-spotify-mountain.jpeg'),
-    title: 'On repeat',
-    caption: 'Western Ghats, headphones on.',
-    moods: ['wander'],
-    date: '2024-06',
-    featured: true,
-    aspect: 'portrait',
-  },
-  {
     id: '14',
     src: img('14-backlit-leaves.jpeg'),
     title: 'Last sun',
@@ -186,15 +176,6 @@ export const photos: Photo[] = [
     caption: 'A web wears its weight in pearls.',
     moods: ['quiet'],
     date: '2024-08',
-    aspect: 'portrait',
-  },
-  {
-    id: '18',
-    src: img('18-mountain-back.jpeg'),
-    title: 'Standing watch',
-    caption: 'Karnataka, monsoon edge.',
-    moods: ['wander'],
-    date: '2024-06',
     aspect: 'portrait',
   },
   {
