@@ -2,17 +2,26 @@
 import { Image } from 'astro:assets';
 import { photos } from '../data/photos.ts';
 
-// Three photos for the layered hero stack — back to front
-const stack = [
-  photos.find((p) => p.id === '24')!, // back: dark droplet
-  photos.find((p) => p.id === '09')!, // middle: rose
-  photos.find((p) => p.id === '15')!, // front: sunset daisies
-];
+// The hero photo. The dark droplet is gorgeous and sets the tone.
+const heroPhoto = photos.find((p) => p.id === '24')!;
 ---
 
 <section class="hero">
-  <div class="container hero-grid">
-    <div class="hero-text">
+  <div class="hero-image">
+    <Image
+      src={heroPhoto.src}
+      alt={heroPhoto.title}
+      widths={[800, 1200, 1800, 2400]}
+      sizes="100vw"
+      loading="eager"
+      format="webp"
+      quality={88}
+    />
+    <div class="vignette"></div>
+  </div>
+
+  <div class="hero-content">
+    <div class="container">
       <p class="eyebrow">Photographs · 2024 — 2025</p>
       <h1>
         <span class="line">Light, held</span>
@@ -23,48 +32,35 @@ const stack = [
         burning landscapes, dark rooms, and a few things that asked to be
         photographed before disappearing.
       </p>
-      <div class="meta">
-        <div>
-          <span class="num">25</span>
-          <span class="lbl">photographs</span>
+
+      <div class="hero-meta-row">
+        <div class="meta">
+          <div>
+            <span class="num">23</span>
+            <span class="lbl">photographs</span>
+          </div>
+          <div>
+            <span class="num">07</span>
+            <span class="lbl">moods</span>
+          </div>
+          <div>
+            <span class="num">02</span>
+            <span class="lbl">years</span>
+          </div>
         </div>
-        <div>
-          <span class="num">07</span>
-          <span class="lbl">moods</span>
-        </div>
-        <div>
-          <span class="num">02</span>
-          <span class="lbl">years</span>
-        </div>
+
+        <a class="scroll-cue" href="#featured">
+          <span>Begin</span>
+          <span class="arrow">↓</span>
+        </a>
       </div>
     </div>
+  </div>
 
-    <div class="stack" id="hero-stack">
-      {
-        stack.map((p, i) => (
-          <figure
-            class={`card card-${i}`}
-            data-photo-id={p.id}
-            data-lightbox
-            data-tilt
-          >
-            <Image
-              src={p.src}
-              alt={p.title}
-              widths={[480, 800, 1200]}
-              sizes="(max-width: 900px) 100vw, 50vw"
-              loading="eager"
-              format="webp"
-              quality={85}
-            />
-            <figcaption>
-              <span class="num">No. {p.id}</span>
-              <span class="title">{p.title}</span>
-            </figcaption>
-          </figure>
-        ))
-      }
-    </div>
+  <!-- attribution badge for the hero photo -->
+  <div class="hero-credit">
+    <span class="num">No. {heroPhoto.id}</span>
+    <span class="title"><em>{heroPhoto.title}</em></span>
   </div>
 </section>
 
@@ -72,60 +68,94 @@ const stack = [
   @use '../styles/tokens' as *;
 
   .hero {
-    padding-top: calc(#{$s-10} + #{$s-6});
-    padding-bottom: $s-9;
     position: relative;
+    width: 100%;
+    height: 100vh;
+    min-height: 640px;
+    overflow: hidden;
+  }
 
-    &::after {
-      content: '';
-      position: absolute;
-      bottom: 0;
-      left: $gutter;
-      right: $gutter;
-      height: 1px;
-      background: linear-gradient(to right, transparent, $ink-3 20%, $ink-3 80%, transparent);
+  .hero-image {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+
+    :global(img) {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center;
+      animation: heroBreathe 16s ease-in-out infinite alternate;
     }
   }
 
-  .hero-grid {
-    display: grid;
-    grid-template-columns: 1.05fr 1fr;
-    gap: $s-9;
-    align-items: center;
-    min-height: 75vh;
-
-    @include mobile {
-      grid-template-columns: 1fr;
-      gap: $s-7;
-      min-height: auto;
+  // Subtle, slow zoom — makes the hero feel alive, like the camera is breathing
+  @keyframes heroBreathe {
+    from {
+      transform: scale(1);
+    }
+    to {
+      transform: scale(1.06);
     }
   }
 
-  .hero-text {
-    .eyebrow {
-      margin-bottom: $s-6;
+  .vignette {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    pointer-events: none;
+    background:
+      // dark fade at top to make the nav readable
+      linear-gradient(to bottom, rgba(10, 8, 7, 0.85) 0%, rgba(10, 8, 7, 0.2) 25%, transparent 45%),
+      // dark fade at bottom for text legibility + section transition
+      linear-gradient(to top, rgba(10, 8, 7, 0.95) 0%, rgba(10, 8, 7, 0.7) 20%, transparent 55%),
+      // very subtle vignette on the sides
+      radial-gradient(ellipse at center, transparent 40%, rgba(10, 8, 7, 0.5) 100%);
+  }
+
+  .hero-content {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    display: flex;
+    align-items: flex-end;
+    padding-bottom: $s-9;
+    pointer-events: none; // so the hero image is still clickable underneath
+
+    // re-enable pointer events on actual content
+    .container > * {
+      pointer-events: auto;
     }
+  }
+
+  .eyebrow {
+    margin-bottom: $s-5;
+    color: $bone;
+    opacity: 0.7;
   }
 
   h1 {
     font-family: $serif;
-    font-size: clamp(56px, 9vw, 132px);
+    font-size: clamp(64px, 11vw, 180px);
     font-weight: 300;
     line-height: 0.92;
-    letter-spacing: -0.035em;
-    margin-bottom: $s-6;
+    letter-spacing: -0.04em;
+    margin-bottom: $s-5;
+    color: $bone;
+    max-width: 14ch;
+    text-shadow: 0 4px 30px rgba(0, 0, 0, 0.6);
 
     .line {
       display: block;
       opacity: 0;
-      transform: translateY(20px);
-      animation: rise $dur-slow $ease-out forwards;
+      transform: translateY(30px);
+      animation: rise 1s $ease-out forwards;
 
       &:nth-child(1) {
-        animation-delay: 0.1s;
+        animation-delay: 0.15s;
       }
       &:nth-child(2) {
-        animation-delay: 0.25s;
+        animation-delay: 0.35s;
       }
     }
 
@@ -146,9 +176,13 @@ const stack = [
   .lede {
     font-size: 18px;
     line-height: 1.6;
-    color: $bone-soft;
-    max-width: 480px;
+    color: $bone;
+    opacity: 0.85;
+    max-width: 540px;
     margin-bottom: $s-7;
+    text-shadow: 0 2px 16px rgba(0, 0, 0, 0.7);
+    opacity: 0;
+    animation: fadeIn 1s $ease-out 0.6s forwards;
 
     strong {
       font-weight: 400;
@@ -156,9 +190,26 @@ const stack = [
     }
   }
 
+  @keyframes fadeIn {
+    to {
+      opacity: 0.85;
+    }
+  }
+
+  .hero-meta-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: $s-6;
+    flex-wrap: wrap;
+    opacity: 0;
+    animation: fadeIn 1s $ease-out 0.8s forwards;
+  }
+
   .meta {
     display: flex;
     gap: $s-7;
+    color: $bone;
 
     @include mobile {
       gap: $s-5;
@@ -172,10 +223,10 @@ const stack = [
 
     .num {
       font-family: $serif;
-      font-size: 28px;
+      font-size: 32px;
       font-weight: 300;
-      color: $bone;
       letter-spacing: -0.02em;
+      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.7);
     }
 
     .lbl {
@@ -183,146 +234,84 @@ const stack = [
       font-size: 10px;
       letter-spacing: 0.2em;
       text-transform: uppercase;
-      color: $bone-mute;
-    }
-  }
-
-  // ============ STACKED PHOTO COMPOSITION ============
-  .stack {
-    position: relative;
-    aspect-ratio: 1 / 1.05;
-    width: 100%;
-    perspective: 1500px;
-
-    @include mobile {
-      aspect-ratio: 4 / 5;
-      margin-top: $s-4;
-    }
-  }
-
-  .card {
-    position: absolute;
-    overflow: hidden;
-    cursor: pointer;
-    box-shadow:
-      0 1px 3px rgba(0, 0, 0, 0.4),
-      0 20px 50px rgba(0, 0, 0, 0.5);
-    transition: transform $dur-base $ease, box-shadow $dur-base $ease;
-    will-change: transform;
-    background: $ink-2;
-
-    :global(img) {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      transition: transform $dur-slow $ease-out;
-    }
-
-    figcaption {
-      position: absolute;
-      bottom: $s-3;
-      left: $s-3;
-      right: $s-3;
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
       color: $bone;
-      opacity: 0;
-      transform: translateY(8px);
-      transition: opacity $dur-base $ease, transform $dur-base $ease;
-      z-index: 2;
-      text-shadow: 0 2px 12px rgba(0, 0, 0, 0.7);
-
-      .num {
-        font-family: $mono;
-        font-size: 9px;
-        letter-spacing: 0.2em;
-        text-transform: uppercase;
-        color: $bone-soft;
-      }
-      .title {
-        font-family: $serif;
-        font-style: italic;
-        font-size: 16px;
-      }
+      opacity: 0.65;
     }
+  }
 
-    &::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(to top, rgba(10, 8, 7, 0.7) 0%, transparent 40%);
-      opacity: 0;
-      transition: opacity $dur-base $ease;
-      pointer-events: none;
+  .scroll-cue {
+    display: inline-flex;
+    align-items: center;
+    gap: $s-3;
+    font-family: $mono;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: $bone;
+    border: 1px solid rgba($bone, 0.3);
+    padding: $s-3 $s-5;
+    border-radius: 999px;
+    transition: all $dur-base $ease;
+    backdrop-filter: blur(8px);
+    background: rgba(10, 8, 7, 0.3);
+
+    .arrow {
+      transition: transform $dur-base $ease;
     }
 
     &:hover {
-      z-index: 10;
-      box-shadow:
-        0 1px 3px rgba(0, 0, 0, 0.5),
-        0 30px 80px rgba(184, 84, 50, 0.15);
-
-      figcaption {
-        opacity: 1;
-        transform: translateY(0);
-      }
-      &::after {
-        opacity: 1;
-      }
-      :global(img) {
-        transform: scale(1.06);
+      border-color: $rust;
+      color: $rust;
+      .arrow {
+        transform: translateY(4px);
       }
     }
   }
 
-  // Stack positions — each card is distinct and overlapping
-  // Defaults are baseline (no tilt) — JS adds the rotation as a CSS var so tilt-on-hover can override
-  .card-0 {
-    width: 65%;
-    aspect-ratio: 4 / 5;
-    top: 0;
-    right: 0;
-    transform: rotate(3.5deg);
-    z-index: 1;
-    --base-rot: 3.5deg;
-  }
-  .card-1 {
-    width: 60%;
-    aspect-ratio: 3 / 4;
-    top: 22%;
-    left: 4%;
-    transform: rotate(-4deg);
-    z-index: 2;
-    --base-rot: -4deg;
-  }
-  .card-2 {
-    width: 55%;
-    aspect-ratio: 4 / 5;
-    bottom: 0;
-    right: 8%;
-    transform: rotate(2deg);
-    z-index: 3;
-    --base-rot: 2deg;
-  }
+  // small caption tag in the corner, like a museum label
+  .hero-credit {
+    position: absolute;
+    top: 50%;
+    right: $s-6;
+    z-index: 4;
+    transform: translateY(-50%) rotate(90deg);
+    transform-origin: right center;
+    display: flex;
+    gap: $s-4;
+    align-items: baseline;
+    color: $bone;
+    opacity: 0.6;
 
-  // On hover, straighten and lift
-  .card-0:hover,
-  .card-1:hover,
-  .card-2:hover {
-    transform: rotate(0deg) translateY(-12px) scale(1.03);
+    .num {
+      font-family: $mono;
+      font-size: 10px;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+    }
+    .title {
+      font-family: $serif;
+      font-size: 13px;
+      em {
+        font-style: italic;
+      }
+    }
+
+    @include mobile {
+      display: none;
+    }
   }
 
   @include mobile {
-    .card-0 {
-      width: 70%;
+    .hero {
+      min-height: 100svh;
     }
-    .card-1 {
-      width: 62%;
-      top: 20%;
+    .hero-content {
+      padding-bottom: $s-7;
     }
-    .card-2 {
-      width: 56%;
+    .hero-meta-row {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: $s-4;
     }
   }
 </style>
