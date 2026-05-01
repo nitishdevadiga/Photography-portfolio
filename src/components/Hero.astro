@@ -199,7 +199,7 @@ const fragPattern = get('11'); // tiny accent — pattern
   .hero {
     position: relative;
     width: 100%;
-    min-height: 100vh;
+    min-height: auto;
     overflow: hidden;
     background: $ink;
     padding: $s-9 0 $s-7;
@@ -216,9 +216,9 @@ const fragPattern = get('11'); // tiny accent — pattern
   // ============================================================
   .stage {
     position: relative;
-    width: min(960px, calc(100% - #{$s-6} * 2));
+    width: min(1200px, calc(100% - #{$s-7} * 2));
     margin: 0 auto;
-    aspect-ratio: 960 / 720;
+    aspect-ratio: 1200 / 760;
     pointer-events: none; // type sits above; collage is decorative
 
     @include mobile {
@@ -332,8 +332,9 @@ const fragPattern = get('11'); // tiny accent — pattern
   .frag-droplet {
     left: 67%;
     top: 46%;
-    width: 10%;
-    height: 13%;
+    width: 9%;
+    aspect-ratio: 1 / 1;
+    height: auto;
     z-index: 9;
     border-radius: 50%;
     box-shadow: 0 1px 0 rgba(237,229,216,0.1), 0 8px 22px rgba(0,0,0,0.55);
@@ -381,7 +382,8 @@ const fragPattern = get('11'); // tiny accent — pattern
     left: 13%;
     top: 56%;
     width: 17%;
-    height: 22%;
+    aspect-ratio: 1 / 1;
+    height: auto;
     z-index: 10;
     border-radius: 50%;
     background: #e8c44a;
@@ -629,10 +631,8 @@ const fragPattern = get('11'); // tiny accent — pattern
   // BOTTOM STAT STRAP
   // ============================================================
   .hero-strap {
-    position: absolute;
-    left: $s-6;
-    right: $s-6;
-    bottom: $s-6;
+    position: relative;
+    margin: $s-6 $s-7 0;
     z-index: 20;
     display: flex;
     justify-content: space-between;
@@ -643,7 +643,6 @@ const fragPattern = get('11'); // tiny accent — pattern
     animation: fadeIn 1s $ease-out 0.9s forwards;
 
     @include mobile {
-      position: static;
       margin: $s-5 $s-5 0;
       flex-direction: column;
       gap: $s-4;
