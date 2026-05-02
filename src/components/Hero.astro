@@ -23,6 +23,26 @@ const fragPattern = get('11'); // tiny accent — pattern
 // We pick a mostly-empty atmospheric photo, blur it heavily, push it to low
 // opacity, and fade out the center via mask so it doesn't fight the collage.
 const bgPhoto = get('08'); // bokeh weather — abstract, no hard subject
+
+// Dynamic counts — keep prose, circle, and credit in sync with the dataset.
+const totalPhotos = photos.length;
+const featuredCount = photos.filter((p) => p.featured).length;
+const moodCount = new Set(photos.flatMap((p) => p.moods)).size;
+
+// Spelled-out number for the lede; falls back to the digit for >29.
+const numberWords: Record<number, string> = {
+  1: 'one', 2: 'two', 3: 'three', 4: 'four', 5: 'five',
+  6: 'six', 7: 'seven', 8: 'eight', 9: 'nine', 10: 'ten',
+  11: 'eleven', 12: 'twelve', 13: 'thirteen', 14: 'fourteen', 15: 'fifteen',
+  16: 'sixteen', 17: 'seventeen', 18: 'eighteen', 19: 'nineteen', 20: 'twenty',
+  21: 'twenty-one', 22: 'twenty-two', 23: 'twenty-three', 24: 'twenty-four',
+  25: 'twenty-five', 26: 'twenty-six', 27: 'twenty-seven', 28: 'twenty-eight',
+  29: 'twenty-nine', 30: 'thirty',
+};
+const totalSpelled = numberWords[totalPhotos] ?? String(totalPhotos);
+
+// Span for the side credit "No. 15 / 28"
+const baseId = fragBase.id;
 ---
 
 <section class="hero">
@@ -157,7 +177,7 @@ const bgPhoto = get('08'); // bokeh weather — abstract, no hard subject
 
     <!-- Yellow circle — "23 photographs" stat fragment -->
     <div class="frag frag-circle" data-rise="3">
-      <div class="circle-num">23</div>
+      <div class="circle-num">{totalPhotos}</div>
       <div class="circle-lbl">photographs</div>
     </div>
 
@@ -169,7 +189,7 @@ const bgPhoto = get('08'); // bokeh weather — abstract, no hard subject
 
     <!-- Quote card — translucent, pressed against ant's right -->
     <div class="frag frag-quote" data-rise="3">
-      <span class="quote-eyebrow">No. 15 · index</span>
+      <span class="quote-eyebrow">No. {baseId} · index</span>
       <p class="quote-body"><em>"What grows through the burning."</em></p>
       <span class="quote-foot">2024 — 2025</span>
     </div>
@@ -190,7 +210,7 @@ const bgPhoto = get('08'); // bokeh weather — abstract, no hard subject
   <!-- Lede + CTA: top-right, pressed against the collage's right edge -->
   <div class="hero-lede">
     <p>
-      A field journal by <strong>Nitish Devadiga</strong> — twenty-three frames
+      A field journal by <strong>Nitish Devadiga</strong> — {totalSpelled} frames
       pulled from two years of looking, arranged by mood.
     </p>
     <a class="scroll-cue" href="#featured">
@@ -202,11 +222,11 @@ const bgPhoto = get('08'); // bokeh weather — abstract, no hard subject
   <!-- Stat strap across the bottom -->
   <div class="hero-strap">
     <div class="stats">
-      <div><span class="lbl">moods</span><span class="num">07</span></div>
+      <div><span class="lbl">moods</span><span class="num">{moodCount.toString().padStart(2,'0')}</span></div>
       <div><span class="lbl">years</span><span class="num">02</span></div>
-      <div><span class="lbl">featured</span><span class="num">{photos.filter(p => p.featured).length.toString().padStart(2,'0')}</span></div>
+      <div><span class="lbl">featured</span><span class="num">{featuredCount.toString().padStart(2,'0')}</span></div>
     </div>
-    <span class="strap-meta">A field journal · No. 15 / {photos.length}</span>
+    <span class="strap-meta">A field journal · No. {baseId} / {totalPhotos}</span>
   </div>
 </section>
 
