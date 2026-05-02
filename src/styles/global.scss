@@ -2,6 +2,49 @@
 
 @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;1,9..144,300;1,9..144,400&family=JetBrains+Mono:wght@400;500&display=swap');
 
+// ============ THEME TOKENS (CSS custom properties) ============
+// These are read by components that should respond to light/dark mode.
+// SCSS tokens above are still used for static decoration/shadows.
+:root,
+:root[data-theme='dark'] {
+  --c-ink:        #{$ink};         // page bg
+  --c-ink-2:      #{$ink-2};       // raised surfaces
+  --c-ink-3:      #{$ink-3};       // dividers
+  --c-bone:       #{$bone};        // primary text
+  --c-bone-soft:  #{$bone-soft};   // secondary text
+  --c-bone-mute:  #{$bone-mute};   // captions
+  --c-rust:       #{$rust};        // accent (unchanged in light mode for brand)
+  --grain-blend:  screen;
+  --grain-opacity: 0.035;
+  --shadow-rim:   rgba(237, 229, 216, 0.10);
+  --shadow-cast:  rgba(0, 0, 0, 0.55);
+  --text-glow-strong: 0 4px 30px rgba(0, 0, 0, 0.85);
+  --text-glow-soft:   0 2px 16px rgba(0, 0, 0, 0.85);
+  --text-glow-tiny:   0 1px 4px rgba(0, 0, 0, 0.6);
+}
+
+:root[data-theme='light'] {
+  // Inverted but with warmth — paper-cream bg, warm ink type, soft surfaces.
+  // Not pure white/black, keeps the journal feel.
+  --c-ink:        #f4ede1;         // warm paper
+  --c-ink-2:      #e8dfd0;         // raised surfaces
+  --c-ink-3:      #d4c8b3;         // dividers
+  --c-bone:       #1f1612;         // primary text — warm near-black
+  --c-bone-soft:  #4a3d33;         // secondary
+  --c-bone-mute:  #7a6d5f;         // captions
+  --c-rust:       #a04528;         // slightly darker rust for contrast on cream
+  --grain-blend:  multiply;
+  --grain-opacity: 0.06;
+  --shadow-rim:   rgba(31, 22, 18, 0.08);
+  --shadow-cast:  rgba(31, 22, 18, 0.18);
+  --text-glow-strong: 0 2px 14px rgba(244, 237, 225, 0.9);
+  --text-glow-soft:   0 1px 8px rgba(244, 237, 225, 0.85);
+  --text-glow-tiny:   0 1px 3px rgba(244, 237, 225, 0.85);
+}
+
+// Smooth swap when toggling
+html { transition: background-color $dur-base $ease, color $dur-base $ease; }
+
 // ============ RESET ============
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
@@ -12,8 +55,8 @@ ul, ol { list-style: none; }
 
 // ============ BASE ============
 body {
-  background: $ink;
-  color: $bone;
+  background: var(--c-ink);
+  color: var(--c-bone);
   font-family: $serif;
   font-size: 17px;
   line-height: 1.55;
@@ -22,6 +65,7 @@ body {
   -moz-osx-font-smoothing: grayscale;
   font-feature-settings: 'liga', 'calt', 'kern';
   overflow-x: hidden;
+  transition: background-color $dur-base $ease, color $dur-base $ease;
 }
 
 // subtle film grain — much lower than before, just for atmosphere
@@ -30,14 +74,14 @@ body::before {
   position: fixed; inset: 0;
   pointer-events: none;
   z-index: 100;
-  opacity: 0.035;
+  opacity: var(--grain-opacity);
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  mix-blend-mode: screen;
+  mix-blend-mode: var(--grain-blend);
 }
 
 ::selection {
-  background: $rust;
-  color: $bone;
+  background: var(--c-rust);
+  color: var(--c-ink);
 }
 
 // ============ TYPE UTILITIES ============
