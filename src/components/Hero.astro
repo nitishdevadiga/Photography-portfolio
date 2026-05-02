@@ -18,9 +18,29 @@ const fragLeaves  = get('14'); // bottom strip — backlit leaves
 const fragFeather = get('16'); // top-left small — feather (already mono)
 const fragDroplet = get('24'); // small circle — droplet on leaf
 const fragPattern = get('11'); // tiny accent — pattern
+
+// Atmospheric backdrop — a soft, photo-of-mood wash behind the whole hero.
+// We pick a mostly-empty atmospheric photo, blur it heavily, push it to low
+// opacity, and fade out the center via mask so it doesn't fight the collage.
+const bgPhoto = get('08'); // bokeh weather — abstract, no hard subject
 ---
 
 <section class="hero">
+  <!-- ============== ATMOSPHERIC BACKDROP ============== -->
+  <!-- Heavily blurred, low-opacity, center-faded so it sits BEHIND the
+       collage as ambience, not competition. -->
+  <div class="hero-bg" aria-hidden="true">
+    <Image
+      src={bgPhoto.src}
+      alt=""
+      widths={[1200, 1800, 2400]}
+      sizes="100vw"
+      loading="eager"
+      format="webp"
+      quality={70}
+    />
+  </div>
+
   <!-- ============== COLLAGE STAGE ============== -->
   <div class="stage" aria-hidden="false">
 
@@ -211,11 +231,84 @@ const fragPattern = get('11'); // tiny accent — pattern
   }
 
   // ============================================================
+  // HERO BACKDROP — heavily-blurred photo wash behind the collage.
+  // Two tricks keep it out of the way of the main composition:
+  //   1) Heavy blur + low opacity so it has no recognizable subject
+  //   2) Radial fade mask so it only shows at the periphery, near-black
+  //      under the collage area itself.
+  // ============================================================
+  .hero-bg {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    overflow: hidden;
+    // Slow horizontal drift for ambient life (very subtle)
+    animation: bgDrift 40s ease-in-out infinite alternate;
+
+    :global(img) {
+      width: 110%;
+      height: 110%;
+      object-fit: cover;
+      object-position: center;
+      // Heavy blur destroys subject, leaves only color wash
+      filter: blur(48px) saturate(1.15) brightness(0.85);
+      opacity: 0.22;
+      // Mask: opaque at edges, transparent toward the center where the
+      // collage lives. This keeps the bg from competing with main fragments.
+      mask-image:
+        radial-gradient(
+          ellipse 60% 55% at center,
+          transparent 0%,
+          rgba(0, 0, 0, 0.4) 55%,
+          rgba(0, 0, 0, 0.95) 100%
+        );
+      -webkit-mask-image:
+        radial-gradient(
+          ellipse 60% 55% at center,
+          transparent 0%,
+          rgba(0, 0, 0, 0.4) 55%,
+          rgba(0, 0, 0, 0.95) 100%
+        );
+    }
+
+    // Extra darkening overlay so the bg never dominates
+    &::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse at center, rgba(10, 8, 7, 0.6) 0%, transparent 70%),
+        linear-gradient(to bottom, transparent 0%, rgba(10, 8, 7, 0.4) 100%);
+      pointer-events: none;
+    }
+  }
+
+  // Light mode adjustment — softer, brighter wash on cream paper
+  :global(html[data-theme='light']) .hero-bg {
+    :global(img) {
+      opacity: 0.16;
+      filter: blur(48px) saturate(1.05) brightness(1.08);
+    }
+    &::after {
+      background:
+        radial-gradient(ellipse at center, rgba(244, 237, 225, 0.55) 0%, transparent 70%),
+        linear-gradient(to bottom, transparent 0%, rgba(244, 237, 225, 0.35) 100%);
+    }
+  }
+
+  @keyframes bgDrift {
+    from { transform: translateX(-1.5%); }
+    to   { transform: translateX(1.5%);  }
+  }
+
+  // ============================================================
   // COLLAGE STAGE — fixed-canvas centered, fragments positioned absolutely
   // The stage is a defined area within the hero so percentages stay coherent.
   // ============================================================
   .stage {
     position: relative;
+    z-index: 1;
     width: min(1440px, calc(100% - #{$s-7} * 2));
     margin: 0 auto;
     aspect-ratio: 1440 / 820;
@@ -632,7 +725,7 @@ const fragPattern = get('11'); // tiny accent — pattern
   // ============================================================
   .hero-strap {
     position: relative;
-    margin: $s-9 $s-7 0;
+    margin: $s-7 $s-7 0;
     z-index: 20;
     display: flex;
     justify-content: space-between;
@@ -643,7 +736,7 @@ const fragPattern = get('11'); // tiny accent — pattern
     animation: fadeIn 1s $ease-out 0.9s forwards;
 
     @include mobile {
-      margin: $s-6 $s-5 0;
+      margin: $s-5 $s-5 0;
       flex-direction: column;
       gap: $s-4;
       align-items: flex-start;
@@ -699,5 +792,6 @@ const fragPattern = get('11'); // tiny accent — pattern
     .frag-feather  { transform: rotate(-3deg) !important; }
     .frag-pattern  { transform: rotate(2deg) !important; }
     .frag-barcode  { transform: rotate(-1.5deg) !important; }
+    .hero-bg { animation: none !important; }
   }
 </style>
