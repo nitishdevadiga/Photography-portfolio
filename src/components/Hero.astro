@@ -201,7 +201,7 @@ const fragPattern = get('11'); // tiny accent — pattern
     width: 100%;
     min-height: auto;
     overflow: hidden;
-    background: $ink;
+    background: var(--c-ink);
     padding: $s-9 0 $s-7;
 
     @include mobile {
@@ -216,9 +216,9 @@ const fragPattern = get('11'); // tiny accent — pattern
   // ============================================================
   .stage {
     position: relative;
-    width: min(1200px, calc(100% - #{$s-7} * 2));
+    width: min(1440px, calc(100% - #{$s-7} * 2));
     margin: 0 auto;
-    aspect-ratio: 1200 / 760;
+    aspect-ratio: 1440 / 820;
     pointer-events: none; // type sits above; collage is decorative
 
     @include mobile {
@@ -462,7 +462,7 @@ const fragPattern = get('11'); // tiny accent — pattern
     border: 0.5px solid rgba($bone, 0.22);
     backdrop-filter: blur(8px);
     padding: $s-4;
-    color: $bone;
+    color: var(--c-bone);
     display: flex;
     flex-direction: column;
 
@@ -492,14 +492,14 @@ const fragPattern = get('11'); // tiny accent — pattern
     position: absolute;
     bottom: 8px;
     right: 10px;
-    color: $bone;
+    color: var(--c-bone);
     opacity: 0.85;
     font-family: $mono;
     font-size: 9px;
     letter-spacing: 0.22em;
     text-transform: uppercase;
     pointer-events: none;
-    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+    text-shadow: var(--text-glow-tiny);
   }
   .frag-label--diff {
     top: 8px;
@@ -533,7 +533,7 @@ const fragPattern = get('11'); // tiny accent — pattern
       font-size: 10px;
       letter-spacing: 0.22em;
       text-transform: uppercase;
-      color: $bone;
+      color: var(--c-bone);
       opacity: 0.7;
       margin: 0 0 $s-4;
     }
@@ -545,8 +545,8 @@ const fragPattern = get('11'); // tiny accent — pattern
       line-height: 0.9;
       letter-spacing: -0.04em;
       margin: 0;
-      color: $bone;
-      text-shadow: 0 4px 30px rgba(0, 0, 0, 0.85);
+      color: var(--c-bone);
+      text-shadow: var(--text-glow-strong);
 
       .line {
         display: block;
@@ -588,12 +588,12 @@ const fragPattern = get('11'); // tiny accent — pattern
     p {
       font-size: 14px;
       line-height: 1.6;
-      color: $bone;
+      color: var(--c-bone);
       opacity: 0.88;
       margin: 0 0 $s-5;
-      text-shadow: 0 2px 16px rgba(0, 0, 0, 0.85);
+      text-shadow: var(--text-glow-soft);
 
-      strong { font-weight: 400; color: $bone; }
+      strong { font-weight: 400; color: var(--c-bone); }
     }
   }
 
@@ -609,7 +609,7 @@ const fragPattern = get('11'); // tiny accent — pattern
     font-size: 11px;
     letter-spacing: 0.22em;
     text-transform: uppercase;
-    color: $bone;
+    color: var(--c-bone);
     border: 1px solid rgba($bone, 0.35);
     padding: $s-3 $s-5;
     border-radius: 999px;
@@ -632,7 +632,7 @@ const fragPattern = get('11'); // tiny accent — pattern
   // ============================================================
   .hero-strap {
     position: relative;
-    margin: $s-6 $s-7 0;
+    margin: $s-9 $s-7 0;
     z-index: 20;
     display: flex;
     justify-content: space-between;
@@ -643,7 +643,7 @@ const fragPattern = get('11'); // tiny accent — pattern
     animation: fadeIn 1s $ease-out 0.9s forwards;
 
     @include mobile {
-      margin: $s-5 $s-5 0;
+      margin: $s-6 $s-5 0;
       flex-direction: column;
       gap: $s-4;
       align-items: flex-start;
@@ -652,7 +652,7 @@ const fragPattern = get('11'); // tiny accent — pattern
     .stats {
       display: flex;
       gap: $s-7;
-      color: $bone;
+      color: var(--c-bone);
 
       @include mobile { gap: $s-5; }
 
@@ -682,7 +682,7 @@ const fragPattern = get('11'); // tiny accent — pattern
       font-size: 10px;
       letter-spacing: 0.22em;
       text-transform: uppercase;
-      color: $bone;
+      color: var(--c-bone);
       opacity: 0.5;
     }
   }
