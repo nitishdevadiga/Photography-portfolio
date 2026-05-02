@@ -15,7 +15,7 @@ const base = import.meta.env.BASE_URL;
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="dark">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -23,6 +23,21 @@ const base = import.meta.env.BASE_URL;
     <meta name="theme-color" content="#0a0807" />
     <link rel="icon" type="image/svg+xml" href={`${base}/favicon.svg`} />
     <title>{title}</title>
+
+    <!-- Apply saved theme BEFORE first paint to avoid a flash -->
+    <script is:inline>
+      (function () {
+        try {
+          const saved = localStorage.getItem('theme');
+          const sysLight = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches;
+          const theme = saved || (sysLight ? 'light' : 'dark');
+          document.documentElement.setAttribute('data-theme', theme);
+          // Sync the meta theme color so mobile chrome bar matches
+          const meta = document.querySelector('meta[name="theme-color"]');
+          if (meta) meta.setAttribute('content', theme === 'light' ? '#f4ede1' : '#0a0807');
+        } catch (e) { /* localStorage may be blocked; default to dark */ }
+      })();
+    </script>
   </head>
   <body>
     <header class="site-header">
@@ -35,6 +50,23 @@ const base = import.meta.env.BASE_URL;
           <a href={`${base}#featured`}>Featured</a>
           <a href={`${base}#archive`}>Archive</a>
           <a href={`${base}#about`}>About</a>
+
+          <button
+            class="theme-toggle"
+            type="button"
+            aria-label="Toggle light and dark mode"
+            title="Toggle theme"
+          >
+            <!-- sun (visible in dark mode → click to go light) -->
+            <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="4" />
+              <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
+            </svg>
+            <!-- moon (visible in light mode → click to go dark) -->
+            <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z" />
+            </svg>
+          </button>
         </nav>
       </div>
     </header>
@@ -42,6 +74,17 @@ const base = import.meta.env.BASE_URL;
     <main>
       <slot />
     </main>
+
+    <!-- Back-to-top button (mirrors the .scroll-cue style from Hero) -->
+    <button
+      class="back-to-top"
+      type="button"
+      aria-label="Back to top"
+      title="Back to top"
+    >
+      <span>Top</span>
+      <span class="arrow">↑</span>
+    </button>
 
     <footer class="site-footer">
       <div class="container footer-inner">
@@ -57,9 +100,47 @@ const base = import.meta.env.BASE_URL;
       </div>
     </footer>
 
+    <!-- Theme + back-to-top behavior -->
+    <script is:inline>
+      (function () {
+        const root = document.documentElement;
+        const themeBtn = document.querySelector('.theme-toggle');
+        const meta = document.querySelector('meta[name="theme-color"]');
+        const backBtn = document.querySelector('.back-to-top');
+
+        if (themeBtn) {
+          themeBtn.addEventListener('click', function () {
+            const next = root.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+            root.setAttribute('data-theme', next);
+            try { localStorage.setItem('theme', next); } catch (e) {}
+            if (meta) meta.setAttribute('content', next === 'light' ? '#f4ede1' : '#0a0807');
+          });
+        }
+
+        // Show back-to-top once user scrolls past ~80% of viewport.
+        // Also drive .scrolled body class for header background swap.
+        function onScroll() {
+          const y = window.scrollY;
+          const past = y > window.innerHeight * 0.8;
+          document.body.classList.toggle('scrolled', y > 50);
+          if (backBtn) backBtn.classList.toggle('is-visible', past);
+        }
+        window.addEventListener('scroll', onScroll, { passive: true });
+        onScroll();
+
+        if (backBtn) {
+          backBtn.addEventListener('click', function () {
+            const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            window.scrollTo({ top: 0, behavior: reduce ? 'auto' : 'smooth' });
+          });
+        }
+      })();
+    </script>
+
     <style lang="scss">
       @use '../styles/tokens' as *;
 
+      // ============ HEADER ============
       .site-header {
         position: fixed;
         top: 0;
@@ -67,21 +148,22 @@ const base = import.meta.env.BASE_URL;
         right: 0;
         z-index: 50;
         padding: $s-5 0;
-        // Transparent over the hero photo, solid below
         background: transparent;
         transition: background $dur-base $ease, backdrop-filter $dur-base $ease;
       }
-      // Once user scrolls past hero, background returns
       :global(body.scrolled) .site-header {
         background: linear-gradient(to bottom, rgba(10, 8, 7, 0.92) 60%, transparent);
         backdrop-filter: blur(12px);
         -webkit-backdrop-filter: blur(12px);
       }
+      :global(html[data-theme='light'] body.scrolled) .site-header {
+        background: linear-gradient(to bottom, rgba(244, 237, 225, 0.92) 60%, transparent);
+      }
 
       .header-inner {
         display: flex;
         justify-content: space-between;
-        align-items: baseline;
+        align-items: center;
       }
 
       .logo {
@@ -89,12 +171,12 @@ const base = import.meta.env.BASE_URL;
         font-size: 16px;
         font-weight: 400;
         letter-spacing: -0.01em;
-        color: $bone;
+        color: var(--c-bone);
 
         em {
           font-style: italic;
           font-weight: 300;
-          color: $bone-soft;
+          color: var(--c-bone-soft);
           margin-left: 0.25em;
         }
       }
@@ -102,13 +184,14 @@ const base = import.meta.env.BASE_URL;
       .nav {
         display: flex;
         gap: $s-6;
+        align-items: center;
         font-family: $mono;
         font-size: 11px;
         letter-spacing: 0.18em;
         text-transform: uppercase;
 
         a {
-          color: $bone-soft;
+          color: var(--c-bone-soft);
           position: relative;
           padding-bottom: 2px;
           transition: color $dur-fast $ease;
@@ -120,14 +203,14 @@ const base = import.meta.env.BASE_URL;
             left: 0;
             right: 0;
             height: 1px;
-            background: $rust;
+            background: var(--c-rust);
             transform: scaleX(0);
             transform-origin: right;
             transition: transform $dur-base $ease;
           }
 
           &:hover {
-            color: $bone;
+            color: var(--c-bone);
             &::after {
               transform: scaleX(1);
               transform-origin: left;
@@ -136,17 +219,122 @@ const base = import.meta.env.BASE_URL;
         }
       }
 
+      // ============ THEME TOGGLE ============
+      .theme-toggle {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        border: 1px solid rgba(0, 0, 0, 0);
+        color: var(--c-bone-soft);
+        margin-left: $s-2;
+        transition: color $dur-fast $ease, border-color $dur-fast $ease, background $dur-fast $ease;
+        position: relative;
+
+        &:hover {
+          color: var(--c-bone);
+          border-color: rgba(184, 84, 50, 0.4);
+        }
+
+        svg {
+          width: 16px;
+          height: 16px;
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%) scale(0.9) rotate(-30deg);
+          opacity: 0;
+          transition: opacity $dur-base $ease, transform $dur-base $ease;
+        }
+
+        // In DARK mode show the sun (click → go light)
+        :global(html[data-theme='dark']) & .icon-sun,
+        :global(html:not([data-theme='light'])) & .icon-sun {
+          opacity: 1;
+          transform: translate(-50%, -50%) scale(1) rotate(0);
+        }
+
+        // In LIGHT mode show the moon (click → go dark)
+        :global(html[data-theme='light']) & .icon-moon {
+          opacity: 1;
+          transform: translate(-50%, -50%) scale(1) rotate(0);
+        }
+      }
+
       @include mobile {
         .nav {
           gap: $s-4;
           font-size: 10px;
         }
+        .theme-toggle {
+          width: 32px;
+          height: 32px;
+        }
       }
 
+      // ============ BACK TO TOP ============
+      .back-to-top {
+        position: fixed;
+        right: $s-6;
+        bottom: $s-6;
+        z-index: 60;
+        display: inline-flex;
+        align-items: center;
+        gap: $s-3;
+        font-family: $mono;
+        font-size: 11px;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        color: var(--c-bone);
+        border: 1px solid rgba(184, 84, 50, 0.4);
+        padding: $s-3 $s-5;
+        border-radius: 999px;
+        background: rgba(10, 8, 7, 0.55);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        opacity: 0;
+        transform: translateY(12px);
+        pointer-events: none;
+        transition:
+          opacity $dur-base $ease,
+          transform $dur-base $ease,
+          color $dur-fast $ease,
+          border-color $dur-fast $ease;
+
+        &.is-visible {
+          opacity: 1;
+          transform: translateY(0);
+          pointer-events: auto;
+        }
+
+        .arrow { transition: transform $dur-base $ease; }
+
+        &:hover {
+          color: var(--c-rust);
+          border-color: var(--c-rust);
+          .arrow { transform: translateY(-4px); }
+        }
+
+        @include mobile {
+          right: $s-4;
+          bottom: $s-4;
+          padding: $s-2 $s-4;
+          font-size: 10px;
+        }
+      }
+
+      // Light-mode adjustment for the back-to-top pill background
+      :global(html[data-theme='light']) .back-to-top {
+        background: rgba(244, 237, 225, 0.7);
+      }
+
+      // ============ FOOTER ============
       .site-footer {
         margin-top: $s-10;
         padding: $s-6 0 $s-7;
-        border-top: 1px solid $ink-3;
+        border-top: 1px solid var(--c-ink-3);
       }
       .footer-inner {
         display: flex;
@@ -155,7 +343,7 @@ const base = import.meta.env.BASE_URL;
         font-size: 11px;
         letter-spacing: 0.18em;
         text-transform: uppercase;
-        color: $bone-mute;
+        color: var(--c-bone-mute);
       }
       .links {
         display: flex;
@@ -163,7 +351,7 @@ const base = import.meta.env.BASE_URL;
         a {
           transition: color $dur-fast $ease;
           &:hover {
-            color: $rust;
+            color: var(--c-rust);
           }
         }
       }
